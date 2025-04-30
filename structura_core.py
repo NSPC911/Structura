@@ -1,17 +1,15 @@
 
 import armor_stand_geo_class as asgc
-import armor_stand_class ,structure_reader ,animation_class ,manifest ,os ,glob ,json ,shutil 
+import armor_stand_class, structure_reader, animation_class, manifest, os, ujson, shutil
 import render_controller_class as rcc
 import big_render_controller as brc
 from shutil import copyfile
-from zipfile import ZIP_DEFLATED, ZipFile
 import time
-import os
 
 debug=False
 
 with open("lookups/nbt_defs.json") as f:
-    nbt_def = json.load(f)
+    nbt_def = ujson.load(f)
 class structura:
     def __init__(self,pack_name):
         os.makedirs(pack_name)

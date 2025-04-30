@@ -28,6 +28,6 @@ def update(url,structura_version, lookup_verison):
     return updated
 if __name__ =="__main__":
     update("https://update.structuralab.com/structuraUpdate",
-           "Structura1-6",
-           "none")
-    
+            "Structura1-6",
+            "none"
+        )

@@ -16,7 +16,7 @@ files_to_conver={
                  "offset":[-32,0,-31]}}
 try:
     shutil.rmtree("tmp/")
-except:
+except FileNotFoundError:
     pass
 if os.path.exists("tmp/all_blocks.mcpack"):
     os.remove("tmp/all_blocks.mcpack")
