@@ -14,12 +14,23 @@ import nbtlib
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.containers import HorizontalGroup, VerticalGroup
-from textual.widgets import Button, Input, Header, Footer, Label, Checkbox, Static
+from textual.widgets import (
+    Button,
+    Input,
+    Header,
+    Footer,
+    Label,
+    Checkbox,
+    Static,
+    OptionList,
+)
 from textual_fspicker import FileOpen, FileSave, Filters
 from textual.validation import Function
 from textual_slider import Slider
 
 debug = False
+
+global added_models
 
 
 def is_float(value: str) -> bool:
@@ -27,6 +38,13 @@ def is_float(value: str) -> bool:
         float(value)
         return True
     except ValueError:
+        return False
+
+
+def file_of_type(file_path: str, file_type: str) -> bool:
+    if os.path.exists(file_path) and file_path.endswith(file_type):
+        return True
+    else:
         return False
 
 
@@ -44,7 +62,8 @@ class StructuraApp(App):
                     placeholder="Path to structure file",
                     validators=[
                         Function(
-                            os.path.exists, failure_description="File does not exist"
+                            lambda string: file_of_type(string, "mcstructure"),
+                            failure_description="File does not exist",
                         )
                     ],
                 ),
@@ -62,7 +81,8 @@ class StructuraApp(App):
                     placeholder="Path to icon file",
                     validators=[
                         Function(
-                            os.path.exists, failure_description="File does not exist"
+                            lambda string: file_of_type(string, "png"),
+                            failure_description="File does not exist",
                         )
                     ],
                 ),
@@ -76,7 +96,7 @@ class StructuraApp(App):
             HorizontalGroup(
                 Label("Pack Name", classes="label"),
                 Input(id="pack_name", placeholder="Name of the pack"),
-                Static(classes="filler"),
+                Static("", classes="sideButton"),
             ),
             VerticalGroup(
                 HorizontalGroup(
@@ -85,50 +105,77 @@ class StructuraApp(App):
                         id="name_tag",
                         placeholder="Name required on the armor stand to display the model",
                     ),
-                ),
-                VerticalGroup(
-                    Static("Offset", classes="center-label"),
-                    HorizontalGroup(
-                        Input(
-                            id="offset_x",
-                            classes="offsets",
-                            placeholder="X Offset",
-                            value="0.0",
-                            validators=[
-                                Function(
-                                    is_float, failure_description="Not a floating point"
-                                )
-                            ],
-                        ),
-                        Input(
-                            id="offset_y",
-                            classes="offsets",
-                            placeholder="Y Offset",
-                            value="0.0",
-                            validators=[
-                                Function(
-                                    is_float, failure_description="Not a floating point"
-                                )
-                            ],
-                        ),
-                        Input(
-                            id="offset_z",
-                            classes="offsets",
-                            placeholder="Z Offset",
-                            value="0.0",
-                            validators=[
-                                Function(
-                                    is_float, failure_description="Not a floating point"
-                                )
-                            ],
-                        ),
+                    Button(
+                        "Add Model",
+                        variant="primary",
+                        id="addModel",
+                        classes="sideButton",
                     ),
+                ),
+                HorizontalGroup(
+                    Static("Offsets", classes="label"),
+                    Input(
+                        id="offset_x",
+                        classes="offsets",
+                        placeholder="X Offset",
+                        value="0.0",
+                        validators=[
+                            Function(
+                                is_float, failure_description="Not a floating point"
+                            )
+                        ],
+                    ),
+                    Input(
+                        id="offset_y",
+                        classes="offsets",
+                        placeholder="Y Offset",
+                        value="0.0",
+                        validators=[
+                            Function(
+                                is_float, failure_description="Not a floating point"
+                            )
+                        ],
+                    ),
+                    Input(
+                        id="offset_z",
+                        classes="offsets",
+                        placeholder="Z Offset",
+                        value="0.0",
+                        validators=[
+                            Function(
+                                is_float, failure_description="Not a floating point"
+                            )
+                        ],
+                    ),
+                    Static("", classes="sideButton"),
+                    id="offsetInputs",
                 ),
                 HorizontalGroup(
                     Label("Transparency", classes="label"),
                     Label("0%", classes="sliderLabel"),
                     Slider(min=0, max=100, step=1, id="model_transparency"),
                     Label("100%", classes="sliderLabel"),
+                    Label(
+                        "0%", id="transparency_value", classes="sliderLabel"
+                    ),
+                    Static("", classes="sideButton"),
+                    id="transparencyGroup",
+                ),
+                HorizontalGroup(
+                    Static("", classes="sideButton"),
+                    OptionList(
+                        "Structure1",
+                        "Structure2",
+                        "Structure3",
+                        markup=False,
+                        id="structureList",
+                    ),
+                    Button(
+                        "Remove Model",
+                        id="removeModel",
+                        classes="sideButton",
+                    ),
+                    id="modelListGroup",
                 ),
                 id="advanced_options",
                 classes="advanced",
@@ -137,8 +184,8 @@ class StructuraApp(App):
                 Checkbox("Advanced", id="advancedToggle"),
                 Checkbox("Make Lists", id="makeLists"),
                 Checkbox("Big Build mode", id="bigBuildMode", classes="advanced"),
-                Static(classes="fillerLarger"),
                 Button("Make Pack", variant="primary", id="makePack"),
+                id="footerButtons",
             ),
             id="root",
         )
@@ -186,6 +233,15 @@ class StructuraApp(App):
             advanced_element.styles.display = (
                 "block" if self.query_one("#advancedToggle").value else "none"
             )
+        self.query_one("#footerButtons").styles.grid_size_columns = (
+            4 if self.query_one("#advancedToggle").value else 3
+        )
+
+    @on(Slider.Changed, "#model_transparency")
+    @work
+    async def update_transparency_value(self, event: Slider.Changed) -> None:
+        """Update the transparency value label when the slider changes."""
+        self.query_one("#transparency_value", Label).update(f"{event.value}%")
 
 
 if __name__ == "__main__":

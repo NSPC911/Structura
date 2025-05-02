@@ -1,37 +1,64 @@
 HorizontalGroup {
     margin: 1 2;
     content-align: center middle;
+    height: 3;
+}
+.label, .sliderLabel {
+    text-align: center;
+    height: 3;
+    padding: 1 2;
+}
+
+#transparencyGroup {
     .label {
-        text-align: center;
-        height: 3;
-        padding: 1 2;
+        width: 0.875fr;
     }
     .sliderLabel {
-        text-align: center;
-        height: 3;
-        padding: 1 2;
+        width: 0.375fr;
     }
-
+    Slider {
+        width: 3fr;
+    }
+    .sideButton {
+        width: 0.875fr;
+        min-width: 0.875fr;
+    }
 }
-#root {
-}
 
-.center-label {
+.center {
     content-align: center middle;
+    text-align: center;
 }
 
-#makePack {
-    margin-left: 2;
-    width: 1fr;
-}
-
-.fsBrowser, .filler, Checkbox {
+.fsBrowser, .sideButton, .label {
     width: 1fr;
     margin-left: 2;
+    min-width: 1fr;
 }
-Input, Slider, .fillerLarger {
+Input, #structureList {
     width: 4fr;
 }
-.label {
-    width: 1fr;
+
+#footerButtons {
+    layout: grid;
+    grid-size: 3;
+    grid-columns: 1fr;
+    Button, Checkbox {
+        width: 100%;
+    }
+}
+
+#offsetInputs .label, #offsetInputs .sideButton {
+    width: 3fr;
+}
+
+#offsetInputs Input {
+    width: 4fr;
+}
+#structureList {
+    height: 10;
+}
+
+#modelListGroup {
+    height: 10;
 }
