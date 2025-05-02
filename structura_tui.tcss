@@ -1,0 +1,37 @@
+HorizontalGroup {
+    margin: 1 2;
+    content-align: center middle;
+    .label {
+        text-align: center;
+        height: 3;
+        padding: 1 2;
+    }
+    .sliderLabel {
+        text-align: center;
+        height: 3;
+        padding: 1 2;
+    }
+
+}
+#root {
+}
+
+.center-label {
+    content-align: center middle;
+}
+
+#makePack {
+    margin-left: 2;
+    width: 1fr;
+}
+
+.fsBrowser, .filler, Checkbox {
+    width: 1fr;
+    margin-left: 2;
+}
+Input, Slider, .fillerLarger {
+    width: 4fr;
+}
+.label {
+    width: 1fr;
+}
