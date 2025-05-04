@@ -53,14 +53,12 @@ class StructuraModel(Option):
         self,
         name: str,
         path: str,
-        offsets: array,
         transparency: int,
     ) -> None:
         super().__init__(prompt=name, id="".join(name.split(" ")))
         self.name_tag = name
         self.name_tag_no_space = "".join(name.split(" "))
         self.path = path
-        self.offsets = offsets
         self.transparency = transparency
 
 
@@ -91,7 +89,7 @@ class StructuraApp(App):
     BINDINGS = []
     CSS_PATH = "structura_tui.tcss"
 
-    async def inputIsValid(self, element_selector) -> bool:
+    def inputIsValid(self, element_selector) -> bool:
         element = self.query_one(element_selector)
         element.validate(element.value)
         return element.is_valid
@@ -346,9 +344,10 @@ class StructuraApp(App):
         # check for validations
         inputElements = ["#structure_file_location", "#icon_file_location", "#name_tag"]
         for elementID in inputElements:
-            if self.inputIsValid(elementID):
+            if not self.inputIsValid(elementID):
+                element_value = self.query_one(elementID).value
                 self.showModalScreen(
-                    f"Invalid input in {elementID}: {self.query_one(elementID)}"
+                    f"Invalid input in {elementID}: {element_value if len(element_value) > 0 else '<empty>'}"
                 )
                 return
         if self.query_one("#bigBuildMode").value:
@@ -362,11 +361,6 @@ class StructuraApp(App):
             StructuraModel(
                 name,
                 self.query_one("#structure_file_location").value,
-                [
-                    self.query_one("#offset_x"),
-                    self.query_one("#offset_y"),
-                    self.query_one("#offset_z"),
-                ],
                 self.query_one("#model_transparency").value,
             )
         )
@@ -375,10 +369,6 @@ class StructuraApp(App):
     def selected_model(self, event: OptionList.OptionSelected) -> None:
         global selectedModel
         selectedModel = event.option
-        if not selectedModel:
-            self.showModalScreen("No model selected")
-        else:
-            self.showModalScreen(event.option_id)
 
     @on(Button.Pressed, "#removeModel")
     def remove_model(self) -> None:
@@ -396,9 +386,22 @@ class StructuraApp(App):
     @work
     async def update_global_coordinates(self) -> None:
         # check for model
-        if self.inputIsValid("#structure_file_location"):
-            self.showModalScreen("No model selected")
+        if self.query_one("#structureList").options == []:
+            self.showModalScreen("No models available")
             return
+        mins = array([2147483647,2147483647,2147483647],dtype=int32)
+        for modelElement in self.query_one("#structureList").options:
+            modelLocation = modelElement.path
+            struct = {}
+            struct["nbt"] = nbtlib.load(modelLocation, byteorder='little')
+            if "" in struct["nbt"].keys():
+                struct["nbt"] = struct["nbt"][""]
+            struct["mins"] = array(list(map(int, struct["nbt"]["structure_world_origin"])))
+            mins = minimum(mins, struct["mins"])
+        # update the offsets
+        self.query_one("#offset_x").value = str(mins[0])
+        self.query_one("#offset_y").value = str(mins[1])
+        self.query_one("#offset_z").value = str(mins[2])
 
 
 if __name__ == "__main__":

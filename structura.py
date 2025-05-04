@@ -122,6 +122,7 @@ def box_checked():
         saveButton.grid(row=r, column=2)
         r +=1
         big_build_check.grid(row=r, column=0,columnspan=2)   
+
 def add_model():
     valid=True
     if big_build.get()==1:
@@ -169,7 +170,7 @@ def runFromGui():
     ##wrapper for a gui.
     global models, offsets
     stop = False
-    if os.path.isfile("{}.mcpack".format(packName.get())):
+    if os.path.isfile(f"{packName.get()}.mcpack"):
         stop = True
         messagebox.showinfo("Error", "pack already exists or pack name is empty")
         ## could be fixed if temp files were used.
@@ -187,7 +188,6 @@ def runFromGui():
     if len(icon_var.get())>0:
         pack_icon=icon_var.get()
     if not stop:
-        
         structura_base=structura(packName.get())
         structura_base.set_opacity(sliderVar.get())
         if len(icon_var.get())>0:
