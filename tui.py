@@ -55,7 +55,6 @@ class StructuraModel(Option):
         path: str,
         offsets: array,
         transparency: int,
-        bigBuildMode: bool,
     ) -> None:
         super().__init__(prompt=name, id="".join(name.split(" ")))
         self.name_tag = name
@@ -63,7 +62,6 @@ class StructuraModel(Option):
         self.path = path
         self.offsets = offsets
         self.transparency = transparency
-        self.bigBuildMode = bigBuildMode
 
 
 class PopupScreen(ModalScreen):
@@ -92,6 +90,11 @@ class PopupScreen(ModalScreen):
 class StructuraApp(App):
     BINDINGS = []
     CSS_PATH = "structura_tui.tcss"
+
+    async def inputIsValid(self, element_selector) -> bool:
+        element = self.query_one(element_selector)
+        element.validate(element.value)
+        return element.is_valid
 
     def showModalScreen(self, message: str) -> None:
         self.push_screen(PopupScreen(message))
@@ -343,10 +346,10 @@ class StructuraApp(App):
         # check for validations
         inputElements = ["#structure_file_location", "#icon_file_location", "#name_tag"]
         for elementID in inputElements:
-            element = self.query_one(elementID)
-            element.validate(element.value)
-            if not element.is_valid:
-                self.showModalScreen(f"Invalid input in {element}: {element.value}")
+            if self.inputIsValid(elementID):
+                self.showModalScreen(
+                    f"Invalid input in {elementID}: {self.query_one(elementID)}"
+                )
                 return
         if self.query_one("#bigBuildMode").value:
             name = os.path.basename(
@@ -365,7 +368,6 @@ class StructuraApp(App):
                     self.query_one("#offset_z"),
                 ],
                 self.query_one("#model_transparency").value,
-                self.query_one("#bigBuildMode"),
             )
         )
 
@@ -389,6 +391,14 @@ class StructuraApp(App):
             str(selectedModel.name_tag_no_space)
         )
         self.selectedModel = None
+
+    @on(Button.Pressed, "#getGlobalCoords")
+    @work
+    async def update_global_coordinates(self) -> None:
+        # check for model
+        if self.inputIsValid("#structure_file_location"):
+            self.showModalScreen("No model selected")
+            return
 
 
 if __name__ == "__main__":
