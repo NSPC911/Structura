@@ -1,113 +1,120 @@
 HorizontalGroup {
-    margin: 1 2;
-    content-align: center middle;
-    height: 3;
+  margin: 1 2;
+  content-align: center middle;
+  height: 3;
 }
 .label {
-    text-align: center;
-    height: 3;
-    padding: 1 2;
+  text-align: center;
+  height: 3;
+  padding: 1 2;
 }
 
 #transparencyGroup {
-    .label {
-        width: 1fr;
-    }
-    #transparencyValue {
-        width: 0.5fr;
-        min-width: 0.5fr;
-    }
-    Slider {
-        width: 3.5fr;
-    }
-    .sideButton {
-        width: 1fr;
-        min-width: 1fr;
-    }
+  .label {
+    width: 1fr;
+  }
+  #transparencyValue {
+    width: 0.5fr;
+    min-width: 0.5fr;
+  }
+  Slider {
+    width: 3.5fr;
+  }
+  .sideButton {
+    width: 1fr;
+    min-width: 1fr;
+  }
 }
 
 .center {
-    content-align: center middle;
-    text-align: center;
+  content-align: center middle;
+  text-align: center;
 }
 
-.fsBrowser, .sideButton, .label {
-    width: 1fr;
-    margin-left: 2;
-    min-width: 1fr;
+.fsBrowser,
+.sideButton,
+.label {
+  width: 1fr;
+  margin-left: 2;
+  min-width: 1fr;
 }
-Input, #structureList {
-    width: 4fr;
+Input,
+#structureList {
+  width: 4fr;
 }
 
 #footerButtons {
-    layout: grid;
-    grid-size-columns: 3;
-    grid-columns: 1fr;
-    Button, Checkbox {
-        width: 100%;
-    }
+  layout: grid;
+  grid-size-columns: 3;
+  grid-columns: 1fr;
+  Button,
+  Checkbox {
+    width: 100%;
+  }
 }
 
-#offsetInputs .label, #offsetInputs .sideButton {
-    width: 3fr;
+#offsetInputs .label,
+#offsetInputs .sideButton {
+  width: 3fr;
 }
 
 #offsetInputs Input {
-    width: 4fr;
+  width: 4fr;
 }
 #structureList {
-    height: 10;
+  height: 10;
 }
 
 #modelListGroup {
-    height: 10;
+  height: 10;
 }
 
 PopupScreen {
-    align: center middle;
-    #popupScreenRoot {
-        width: 50vw;
-        height: 25vh;
-        border: thick white 80%;
-        background: $surface;
-        Label {
-            content-align: center middle;
-            width: 1fr;
-            dock: top;
-            height: 1fr;
-        }
-        Button {
-            width: 1fr;
-            content-align: center middle;
-        }
-        .topPadding {
-            height: 0.5fr;
-        }
-        .leftPadding, .rightPadding {
-            width: 1.5fr;
-        }
-        VerticalGroup, HorizontalGroup {
-            height: 1fr;
-        }
+  align: center middle;
+  #popupScreenRoot {
+    width: 50vw;
+    height: 25vh;
+    border: thick white 80%;
+    background: $surface;
+    Label {
+      content-align: center middle;
+      width: 1fr;
+      dock: top;
+      height: 1fr;
     }
+    Button {
+      width: 1fr;
+      content-align: center middle;
+    }
+    .topPadding {
+      height: 0.5fr;
+    }
+    .leftPadding,
+    .rightPadding {
+      width: 1.5fr;
+    }
+    VerticalGroup,
+    HorizontalGroup {
+      height: 1fr;
+    }
+  }
 }
 #globalCoordsGroup {
-    display: none;
-    .padding {
-        width: 1fr;
-        min-width: 1fr;
-        padding: 1 2;
-        margin-left: 2;
-    }
-    #addModel {
-        width: 1fr;
-    }
-    #getGlobalCoords {
-        width: 4fr;
-    }
+  display: none;
+  .padding {
+    width: 1fr;
+    min-width: 1fr;
+    padding: 1 2;
+    margin-left: 2;
+  }
+  #addModel {
+    width: 1fr;
+  }
+  #getGlobalCoords {
+    width: 4fr;
+  }
 }
 
 #cornerLabel {
-    display: none;
+  display: none;
 }

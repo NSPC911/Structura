@@ -32,6 +32,7 @@ from textual_slider import Slider
 
 debug = False
 
+
 def is_float(value: str) -> bool:
     try:
         float(value)
@@ -39,21 +40,31 @@ def is_float(value: str) -> bool:
     except ValueError:
         return False
 
+
 def file_of_type(file_path: str, file_type: str) -> bool:
     if os.path.exists(file_path) and file_path.endswith(file_type):
         return True
     else:
         return False
+
+
 class StructuraModel(Option):
-    def __init__(self, name:str, path:str, offsets:array, transparency:int, bigBuildMode:bool) -> None:
-        super().__init__(prompt=name)
+    def __init__(
+        self,
+        name: str,
+        path: str,
+        offsets: array,
+        transparency: int,
+        bigBuildMode: bool,
+    ) -> None:
+        super().__init__(prompt=name, id="".join(name.split(" ")))
         self.name_tag = name
+        self.name_tag_no_space = "".join(name.split(" "))
         self.path = path
         self.offsets = offsets
         self.transparency = transparency
         self.bigBuildMode = bigBuildMode
-    def compose(self) -> ComposeResult:
-        yield Option(self.name_tag, classes="modelName")
+
 
 class PopupScreen(ModalScreen):
     def __init__(self, message: str) -> None:
@@ -71,11 +82,12 @@ class PopupScreen(ModalScreen):
                 Button("OK", id="okPopup", variant="primary"),
                 Static("", classes="rightPadding"),
             ),
-            id="popupScreenRoot"
+            id="popupScreenRoot",
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.dismiss(True)
+
 
 class StructuraApp(App):
     BINDINGS = []
@@ -83,7 +95,7 @@ class StructuraApp(App):
 
     def showModalScreen(self, message: str) -> None:
         self.push_screen(PopupScreen(message))
-    
+
     def compose(self) -> ComposeResult:
         yield Header("Structura")
         yield VerticalGroup(
@@ -98,7 +110,7 @@ class StructuraApp(App):
                             failure_description="File does not exist",
                         )
                     ],
-                    value=""
+                    value="",
                 ),
                 Button(
                     "Browse",
@@ -118,7 +130,13 @@ class StructuraApp(App):
                             failure_description="File does not exist",
                         )
                     ],
-                    value=str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "lookups", "pack_icon.png"))
+                    value=str(
+                        os.path.join(
+                            os.path.dirname(os.path.realpath(__file__)),
+                            "lookups",
+                            "pack_icon.png",
+                        )
+                    ),
                 ),
                 Button(
                     "Browse",
@@ -138,7 +156,7 @@ class StructuraApp(App):
                             failure_description="Name required",
                         )
                     ],
-                    value=""
+                    value="",
                 ),
                 Static("", classes="sideButton"),
             ),
@@ -148,6 +166,12 @@ class StructuraApp(App):
                     Input(
                         id="name_tag",
                         placeholder="Name required on the armor stand to display the model",
+                        validators=[
+                            Function(
+                                lambda string: len(string) > 0,
+                                failure_description="Name required",
+                            )
+                        ],
                     ),
                     Button(
                         "Add Model",
@@ -160,7 +184,12 @@ class StructuraApp(App):
                 HorizontalGroup(
                     Static("", classes="sideButton"),
                     Button("Get Global Coords", id="getGlobalCoords"),
-                    Button("Add Model", id="addModel", variant="primary", classes="sideButton"),
+                    Button(
+                        "Add Model",
+                        id="addModel",
+                        variant="primary",
+                        classes="sideButton",
+                    ),
                     id="globalCoordsGroup",
                 ),
                 HorizontalGroup(
@@ -212,7 +241,6 @@ class StructuraApp(App):
                 HorizontalGroup(
                     Static("", classes="sideButton"),
                     OptionList(
-                        markup=False,
                         id="structureList",
                     ),
                     Button(
@@ -298,7 +326,7 @@ class StructuraApp(App):
             self.query_one("#globalCoordsGroup").styles.display = "none"
             self.query_one("#offsetLabel").styles.display = "block"
             self.query_one("#cornerLabel").styles.display = "none"
-    
+
     @on(Slider.Changed, "#model_transparency")
     @work
     async def update_transparency_value(self, event: Slider.Changed) -> None:
@@ -306,21 +334,19 @@ class StructuraApp(App):
         self.query_one("#transparencyValue", Label).update(f"{event.value}%")
 
     @on(Button.Pressed, "#makePack")
-    @work
-    async def make_pack(self, event: Button.Pressed) -> None:
+    def make_pack(self, event: Button.Pressed) -> None:
         """Make the pack."""
         self.showModalScreen("   Making pack...")
-    
+
     @on(Button.Pressed, "#addModel")
-    @work
-    async def add_model(self) -> None:
+    def add_model(self) -> None:
         # check for validations
-        for inputElement in self.query("Input"):
-            inputElement.validate(inputElement.value)
-            if not inputElement.is_valid:
-                self.showModalScreen(
-                    "Validation failed, please ensure all inputs are valid (no red borders)"
-                )
+        inputElements = ["#structure_file_location", "#icon_file_location", "#name_tag"]
+        for elementID in inputElements:
+            element = self.query_one(elementID)
+            element.validate(element.value)
+            if not element.is_valid:
+                self.showModalScreen(f"Invalid input in {element}: {element.value}")
                 return
         if self.query_one("#bigBuildMode").value:
             name = os.path.basename(
@@ -333,11 +359,38 @@ class StructuraApp(App):
             StructuraModel(
                 name,
                 self.query_one("#structure_file_location").value,
-                [self.query_one("#offset_x"), self.query_one("#offset_y"), self.query_one("#offset_z")],
+                [
+                    self.query_one("#offset_x"),
+                    self.query_one("#offset_y"),
+                    self.query_one("#offset_z"),
+                ],
                 self.query_one("#model_transparency").value,
-                self.query_one("#bigBuildMode")
+                self.query_one("#bigBuildMode"),
             )
         )
+
+    @on(OptionList.OptionSelected, "#structureList")
+    def selected_model(self, event: OptionList.OptionSelected) -> None:
+        global selectedModel
+        selectedModel = event.option
+        if not selectedModel:
+            self.showModalScreen("No model selected")
+        else:
+            self.showModalScreen(event.option_id)
+
+    @on(Button.Pressed, "#removeModel")
+    def remove_model(self) -> None:
+        # check whether there are models first
+        if len(self.query_one("#structureList").options) == 0:
+            self.showModalScreen("No models to remove")
+            return
+        # actually remove the model
+        self.query_one("#structureList").remove_option(
+            str(selectedModel.name_tag_no_space)
+        )
+        self.selectedModel = None
+
+
 if __name__ == "__main__":
     app = StructuraApp()
     app.run()
