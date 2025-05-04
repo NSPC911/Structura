@@ -386,14 +386,16 @@ class StructuraApp(App):
         if self.query_one("#structureList").options == []:
             self.showModalScreen("No models available")
             return
-        mins = array([2147483647,2147483647,2147483647],dtype=int32)
+        mins = array([2147483647, 2147483647, 2147483647], dtype=int32)
         for modelElement in self.query_one("#structureList").options:
             modelLocation = modelElement.path
             struct = {}
-            struct["nbt"] = nbtlib.load(modelLocation, byteorder='little')
+            struct["nbt"] = nbtlib.load(modelLocation, byteorder="little")
             if "" in struct["nbt"].keys():
                 struct["nbt"] = struct["nbt"][""]
-            struct["mins"] = array(list(map(int, struct["nbt"]["structure_world_origin"])))
+            struct["mins"] = array(
+                list(map(int, struct["nbt"]["structure_world_origin"]))
+            )
             mins = minimum(mins, struct["mins"])
         # update the offsets
         self.query_one("#offset_x").value = str(mins[0])
