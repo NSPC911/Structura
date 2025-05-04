@@ -299,8 +299,7 @@ class StructuraApp(App):
         )
 
     @on(Checkbox.Changed, "#advancedToggle")
-    @work
-    async def handle_advanced_toggle(self) -> None:
+    def handle_advanced_toggle(self) -> None:
         useAdvanced = self.query_one("#advancedToggle").value
         advanced_elements = self.query(".advanced")
         for advanced_element in advanced_elements:
@@ -311,8 +310,7 @@ class StructuraApp(App):
             self.query_one("#footerButtons").styles.grid_size_size_columns = 3
 
     @on(Checkbox.Changed, "#bigBuildMode")
-    @work
-    async def toggle_big_build_mode(self) -> None:
+    def toggle_big_build_mode(self) -> None:
         """Toggle the big build mode."""
         big_build_mode = self.query_one("#bigBuildMode").value
         # I dont have any better way for the labels, there
@@ -329,8 +327,7 @@ class StructuraApp(App):
             self.query_one("#cornerLabel").styles.display = "none"
 
     @on(Slider.Changed, "#model_transparency")
-    @work
-    async def update_transparency_value(self, event: Slider.Changed) -> None:
+    def update_transparency_value(self, event: Slider.Changed) -> None:
         """Update the transparency value label when the slider changes."""
         self.query_one("#transparencyValue", Label).update(f"{event.value}%")
 
