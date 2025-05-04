@@ -3,7 +3,7 @@ HorizontalGroup {
     content-align: center middle;
     height: 3;
 }
-.label, .sliderLabel {
+.label {
     text-align: center;
     height: 3;
     padding: 1 2;
@@ -11,17 +11,18 @@ HorizontalGroup {
 
 #transparencyGroup {
     .label {
-        width: 0.875fr;
+        width: 1fr;
     }
-    .sliderLabel {
-        width: 0.375fr;
+    #transparencyValue {
+        width: 0.5fr;
+        min-width: 0.5fr;
     }
     Slider {
-        width: 3fr;
+        width: 3.5fr;
     }
     .sideButton {
-        width: 0.875fr;
-        min-width: 0.875fr;
+        width: 1fr;
+        min-width: 1fr;
     }
 }
 
@@ -41,7 +42,7 @@ Input, #structureList {
 
 #footerButtons {
     layout: grid;
-    grid-size: 3;
+    grid-size-columns: 3;
     grid-columns: 1fr;
     Button, Checkbox {
         width: 100%;
@@ -61,4 +62,52 @@ Input, #structureList {
 
 #modelListGroup {
     height: 10;
+}
+
+PopupScreen {
+    align: center middle;
+    #popupScreenRoot {
+        width: 50vw;
+        height: 25vh;
+        border: thick white 80%;
+        background: $surface;
+        Label {
+            content-align: center middle;
+            width: 1fr;
+            dock: top;
+            height: 1fr;
+        }
+        Button {
+            width: 1fr;
+            content-align: center middle;
+        }
+        .topPadding {
+            height: 0.5fr;
+        }
+        .leftPadding, .rightPadding {
+            width: 1.5fr;
+        }
+        VerticalGroup, HorizontalGroup {
+            height: 1fr;
+        }
+    }
+}
+#globalCoordsGroup {
+    display: none;
+    .padding {
+        width: 1fr;
+        min-width: 1fr;
+        padding: 1 2;
+        margin-left: 2;
+    }
+    #addModel {
+        width: 1fr;
+    }
+    #getGlobalCoords {
+        width: 4fr;
+    }
+}
+
+#cornerLabel {
+    display: none;
 }

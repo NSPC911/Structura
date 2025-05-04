@@ -24,14 +24,13 @@ from textual.widgets import (
     Static,
     OptionList,
 )
+from textual.widgets.option_list import Option
+from textual.screen import ModalScreen
 from textual_fspicker import FileOpen, FileSave, Filters
 from textual.validation import Function
 from textual_slider import Slider
 
 debug = False
-
-global added_models
-
 
 def is_float(value: str) -> bool:
     try:
@@ -40,18 +39,51 @@ def is_float(value: str) -> bool:
     except ValueError:
         return False
 
-
 def file_of_type(file_path: str, file_type: str) -> bool:
     if os.path.exists(file_path) and file_path.endswith(file_type):
         return True
     else:
         return False
+class StructuraModel(Option):
+    def __init__(self, name:str, path:str, offsets:array, transparency:int, bigBuildMode:bool) -> None:
+        super().__init__(prompt=name)
+        self.name_tag = name
+        self.path = path
+        self.offsets = offsets
+        self.transparency = transparency
+        self.bigBuildMode = bigBuildMode
+    def compose(self) -> ComposeResult:
+        yield Option(self.name_tag, classes="modelName")
 
+class PopupScreen(ModalScreen):
+    def __init__(self, message: str) -> None:
+        super().__init__()
+        self.message = message
+
+    def compose(self) -> ComposeResult:
+        yield VerticalGroup(
+            VerticalGroup(
+                Static("", classes="topPadding"),
+                Label(self.message, id="popupMessage"),
+            ),
+            HorizontalGroup(
+                Static("", classes="leftPadding"),
+                Button("OK", id="okPopup", variant="primary"),
+                Static("", classes="rightPadding"),
+            ),
+            id="popupScreenRoot"
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        self.dismiss(True)
 
 class StructuraApp(App):
     BINDINGS = []
     CSS_PATH = "structura_tui.tcss"
 
+    def showModalScreen(self, message: str) -> None:
+        self.push_screen(PopupScreen(message))
+    
     def compose(self) -> ComposeResult:
         yield Header("Structura")
         yield VerticalGroup(
@@ -66,6 +98,7 @@ class StructuraApp(App):
                             failure_description="File does not exist",
                         )
                     ],
+                    value=""
                 ),
                 Button(
                     "Browse",
@@ -85,6 +118,7 @@ class StructuraApp(App):
                             failure_description="File does not exist",
                         )
                     ],
+                    value=str(os.path.join(os.path.dirname(os.path.realpath(__file__)), "lookups", "pack_icon.png"))
                 ),
                 Button(
                     "Browse",
@@ -95,7 +129,17 @@ class StructuraApp(App):
             ),
             HorizontalGroup(
                 Label("Pack Name", classes="label"),
-                Input(id="pack_name", placeholder="Name of the pack"),
+                Input(
+                    id="pack_name",
+                    placeholder="Name of the pack",
+                    validators=[
+                        Function(
+                            lambda string: len(string) > 0,
+                            failure_description="Name required",
+                        )
+                    ],
+                    value=""
+                ),
                 Static("", classes="sideButton"),
             ),
             VerticalGroup(
@@ -111,9 +155,17 @@ class StructuraApp(App):
                         id="addModel",
                         classes="sideButton",
                     ),
+                    id="nameTagGroup",
                 ),
                 HorizontalGroup(
-                    Static("Offsets", classes="label"),
+                    Static("", classes="sideButton"),
+                    Button("Get Global Coords", id="getGlobalCoords"),
+                    Button("Add Model", id="addModel", variant="primary", classes="sideButton"),
+                    id="globalCoordsGroup",
+                ),
+                HorizontalGroup(
+                    Label("Offsets", id="offsetLabel", classes="label"),
+                    Label("Corner", id="cornerLabel", classes="label"),
                     Input(
                         id="offset_x",
                         classes="offsets",
@@ -152,21 +204,14 @@ class StructuraApp(App):
                 ),
                 HorizontalGroup(
                     Label("Transparency", classes="label"),
-                    Label("0%", classes="sliderLabel"),
+                    Label("0%", id="transparencyValue", classes="slider label"),
                     Slider(min=0, max=100, step=1, id="model_transparency"),
-                    Label("100%", classes="sliderLabel"),
-                    Label(
-                        "0%", id="transparency_value", classes="sliderLabel"
-                    ),
                     Static("", classes="sideButton"),
                     id="transparencyGroup",
                 ),
                 HorizontalGroup(
                     Static("", classes="sideButton"),
                     OptionList(
-                        "Structure1",
-                        "Structure2",
-                        "Structure3",
                         markup=False,
                         id="structureList",
                     ),
@@ -192,8 +237,7 @@ class StructuraApp(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        advanced_elements = self.query(".advanced")
-        for advanced_element in advanced_elements:
+        for advanced_element in self.query(".advanced"):
             advanced_element.styles.display = "none"
 
     async def open_file(self, input_id: str, file_filter: Filters) -> None:
@@ -228,22 +272,72 @@ class StructuraApp(App):
     @on(Checkbox.Changed, "#advancedToggle")
     @work
     async def handle_advanced_toggle(self) -> None:
+        useAdvanced = self.query_one("#advancedToggle").value
         advanced_elements = self.query(".advanced")
         for advanced_element in advanced_elements:
-            advanced_element.styles.display = (
-                "block" if self.query_one("#advancedToggle").value else "none"
-            )
-        self.query_one("#footerButtons").styles.grid_size_columns = (
-            4 if self.query_one("#advancedToggle").value else 3
-        )
+            advanced_element.styles.display = "block" if useAdvanced else "none"
+        if useAdvanced:
+            self.query_one("#footerButtons").styles.grid_size_columns = 4
+        else:
+            self.query_one("#footerButtons").styles.grid_size_size_columns = 3
 
+    @on(Checkbox.Changed, "#bigBuildMode")
+    @work
+    async def toggle_big_build_mode(self) -> None:
+        """Toggle the big build mode."""
+        big_build_mode = self.query_one("#bigBuildMode").value
+        # I dont have any better way for the labels, there
+        # isnt something stated in the docs to update labels
+        if big_build_mode:
+            self.query_one("#nameTagGroup").styles.display = "none"
+            self.query_one("#globalCoordsGroup").styles.display = "block"
+            self.query_one("#cornerLabel").styles.display = "block"
+            self.query_one("#offsetLabel").styles.display = "none"
+        else:
+            self.query_one("#nameTagGroup").styles.display = "block"
+            self.query_one("#globalCoordsGroup").styles.display = "none"
+            self.query_one("#offsetLabel").styles.display = "block"
+            self.query_one("#cornerLabel").styles.display = "none"
+    
     @on(Slider.Changed, "#model_transparency")
     @work
     async def update_transparency_value(self, event: Slider.Changed) -> None:
         """Update the transparency value label when the slider changes."""
-        self.query_one("#transparency_value", Label).update(f"{event.value}%")
+        self.query_one("#transparencyValue", Label).update(f"{event.value}%")
 
-
+    @on(Button.Pressed, "#makePack")
+    @work
+    async def make_pack(self, event: Button.Pressed) -> None:
+        """Make the pack."""
+        self.showModalScreen("   Making pack...")
+    
+    @on(Button.Pressed, "#addModel")
+    @work
+    async def add_model(self) -> None:
+        # check for validations
+        for inputElement in self.query("Input"):
+            inputElement.validate(inputElement.value)
+            if not inputElement.is_valid:
+                self.showModalScreen(
+                    "Validation failed, please ensure all inputs are valid (no red borders)"
+                )
+                return
+        if self.query_one("#bigBuildMode").value:
+            name = os.path.basename(
+                self.query_one("#structure_file_location").value
+            ).split(".")[0]
+        else:
+            name = self.query_one("#name_tag").value
+        # ok validation successful
+        self.query_one("#structureList").add_option(
+            StructuraModel(
+                name,
+                self.query_one("#structure_file_location").value,
+                [self.query_one("#offset_x"), self.query_one("#offset_y"), self.query_one("#offset_z")],
+                self.query_one("#model_transparency").value,
+                self.query_one("#bigBuildMode")
+            )
+        )
 if __name__ == "__main__":
     app = StructuraApp()
     app.run()
